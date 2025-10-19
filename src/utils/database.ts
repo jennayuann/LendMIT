@@ -1,7 +1,10 @@
 // This import loads the `.env` file as environment variables
+// deno-lint-ignore no-import-prefix
 import "jsr:@std/dotenv/load";
+// deno-lint-ignore no-import-prefix
 import { Db, MongoClient } from "npm:mongodb";
 import { ID } from "@utils/types.ts";
+// deno-lint-ignore no-import-prefix
 import { generate } from "jsr:@std/uuid/unstable-v7";
 
 async function initMongoClient() {

@@ -1,6 +1,22 @@
 {
+    "compilerOptions": {
+        "lib": ["deno.ns", "dom"]
+    },
     "imports": {
         "@concepts/": "./src/concepts/",
-        "@utils/": "./src/utils/"
-    }
+        "@std/assert": "jsr:@std/assert@^1.0.15",
+        "@utils/": "./src/utils/",
+        "@/": "./src/",
+        "mongodb": "npm:mongodb"
+    },
+    "tasks": {
+        "start": "deno run --allow-env --allow-net --allow-read --allow-sys=osRelease src/main.ts",
+        "test": "deno test --allow-env --allow-net --allow-read --allow-sys=osRelease"
+    },
+    "lint": {
+        "rules": {
+        "exclude": ["no-unversioned-import"]
+        }
+    },
+    "nodeModulesDir": "auto"
 }

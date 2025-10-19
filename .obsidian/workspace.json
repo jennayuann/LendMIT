@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "0191866cebf1b7c3",
+        "id": "bd295ca619a972cc",
         "type": "tabs",
         "children": [
           {
-            "id": "60ccb8b74e272dda",
+            "id": "fc52198744952495",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -169,8 +169,43 @@
       "bases:Create new base": false
     }
   },
-  "active": "60ccb8b74e272dda",
+  "active": "fc52198744952495",
   "lastOpenFiles": [
-    "README.md"
+    "design/concepts/Comprehensive Design File.md",
+    "design/concepts/UserAuthentication/UserAuthentication.md",
+    "context/design/concepts/ResourceStatus/prompts/test-prompt.md/steps/response.39fbed54.md",
+    "design/concepts/Comprehensive Deign File.md",
+    "context/design/concepts/ResourceStatus/prompts/test-prompt.md/steps/response.d03068a2.md",
+    "context/design/concepts/Resource/prompts/test-prompt.md/steps/Requirements.86266496.md",
+    "context/design/concepts/Resource/prompts/test-prompt.md/steps/response.404d872f.md",
+    "context/design/concepts/Resource/prompts/test-prompt.md/steps/response.724b5109.md",
+    "context/design/concepts/Resource/prompts/test-prompt.md/steps/response.da3f9e63.md",
+    "context/design/concepts/TimeBoundedResource/prompts/test-prompt.md/steps/response.2c7cd1ba.md",
+    "context/design/concepts/TimeBoundedResource/prompts/test-prompt.md/steps/response.7e6f3d60.md",
+    "context/design/concepts/TimeBoundedResource/prompts/test-prompt.md/steps/response.80c3502f.md",
+    "context/design/concepts/TimeBoundedResource/prompts/test-prompt.md/steps/response.671643f2.md",
+    "context/design/concepts/TimeBoundedResource/prompts/test-prompt.md/20251019_001919.ec710b5b.md",
+    "context/design/concepts/TimeBoundedResource/prompts/test-prompt.md/20251019_001803.b3178e5c.md",
+    "context/design/concepts/TimeBoundedResource/prompts/test-prompt.md/20251019_005239.2116808c.md",
+    "context/design/concepts/UserAuthentication/prompts/test-prompt.md/20251019_010901.719f99d4.md",
+    "context/design/learning/understanding-concepts.md/20251007_220831.68f5d90a.md",
+    "context/design/learning/understanding-concepts.md/20251007_220759.21c003be.md",
+    "context/design/concepts/Resource/prompts/implementation-prompt.md/steps/response.27619791.md",
+    "context/design/concepts/Resource/prompts/implementation-prompt.md/steps/response.08a3d060.md",
+    "context/design/concepts/Resource/prompts/implementation-prompt.md/steps/New request.c3ad0bed.md",
+    "context/design/concepts/Resource/prompts/test-prompt.md/steps/concept.23233ff9.md",
+    "context/design/concepts/Resource/prompts/test-prompt.md/steps/Task.5fa55e43.md",
+    "context/design/concepts/Resource/prompts/test-prompt.md/steps/Task.7e1d8edb.md",
+    "design/concepts/Resource/prompts/implementation-prompt.md",
+    "context/design/concepts/UserProfile/prompts/test-prompt.md/steps",
+    "src/concepts/UserProfile/UserProfile.test.ts",
+    "src/concepts/UserProfile/UserProfile.ts",
+    "src/concepts/UserProfile",
+    "context/design/concepts/UserProfile/prompts/implementation-prompt.md/steps",
+    "context/design/concepts/UserAuthentication/prompts/test-prompt.md/steps",
+    "src/concepts/UserAuthentication/UserAuthentication.test.ts",
+    "src/concepts/UserAuthentication/UserAuthentication.ts",
+    "src/concepts/UserAuthentication",
+    "context/design/concepts/UserAuthentication/prompts/implementation-prompt.md/steps"
   ]
 }

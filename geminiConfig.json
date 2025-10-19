@@ -1,5 +1,6 @@
 {
-    "thinkingConfig": {
-        "includeThoughts": true
-    }
+  "model": "gemini-2.5-flash",
+  "thinkingConfig": {
+    "includeThoughts": true
+  }
 }
