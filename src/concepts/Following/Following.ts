@@ -1,7 +1,7 @@
 // src/concepts/Following.ts
 
 import { Collection, Db, MongoServerError } from "mongodb";
-import { ID, Empty } from "@/utils/types.ts";
+import { Empty, ID } from "@/utils/types.ts";
 import { freshID } from "@/utils/database.ts";
 import { db } from "@/db/connection.ts";
 
@@ -49,7 +49,9 @@ export class Following {
         { follower: 1, followee: 1 },
         { unique: true, name: "follower_followee_unique" },
       );
-      console.log(`✅ Index 'follower_followee_unique' ensured for collection '${COLLECTION_NAME}'`);
+      console.log(
+        `✅ Index 'follower_followee_unique' ensured for collection '${COLLECTION_NAME}'`,
+      );
     } catch (error) {
       console.error(
         `Failed to ensure index 'follower_followee_unique' for collection '${COLLECTION_NAME}':`,
