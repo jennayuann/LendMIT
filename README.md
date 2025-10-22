@@ -53,4 +53,4 @@
 
 ## Application-level design file and interesting moments
 
-- Application design overview and 5–10 “interesting moments” with snapshot links: [Comprehensive Design File](design/concepts/Comprehensive\ Deign\ File.md)
+- Application design overview and 5–10 “interesting moments” with snapshot links: [Comprehensive Design File](design/concepts/Comprehensive%20Design%20File.md)
