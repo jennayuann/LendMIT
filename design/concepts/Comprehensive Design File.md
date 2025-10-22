@@ -31,11 +31,13 @@ This unifies registration, password handling, and verification under one concept
 The result is a simpler flow where the same concept manages users’ credentials, their verification codes, and their status transitions (`UNVERIFIED → VERIFIED → DEACTIVATED`).
 - **UserAuthentication** — manages user credentials, verification codes, and lifecycle states.
 
-### **Posting → split into Resource, ResourceStatus, and TimeBoundedResource**
-The old `Posting` concept was the biggest issue—it handled too much at once: user ownership, descriptive data, timing, and lifecycle rules.  
+### **Posting → split into Resource, ResourceIntent, ResourceStatus, and TimeBoundedResource**
+The old `Posting` concept was the biggest issue—it handled too much at once: user ownership, intent, descriptive data, timing, and lifecycle rules.  
 It wasn’t general enough to apply outside the lending/borrowing scenario. I decomposed it into three separate, reusable concepts:
 
 - **Resource** — represents any ownable entity with name, category, and description.
+
+- **ResourceIntent** — captures what the intent of a resource is.
     
 - **ResourceStatus** — manages lifecycle transitions between states.
     
@@ -58,7 +60,7 @@ This design is cleaner and more general: you can now follow users, resources, or
 
 - **UserAuthentication + UserProfile** manage who someone is and how they appear.
     
-- **Resource**, **ResourceStatus**, and **TimeBoundedResource** describe what they create, its state, and its availability.
+- **Resource**, **ResourceIntent**, **ResourceStatus**, and **TimeBoundedResource** describe what they create, its intent, its state, and its availability.
     
 - **Following** connects users to one another.
     

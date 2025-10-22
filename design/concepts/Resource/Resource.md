@@ -28,3 +28,7 @@
     *   `getResource (resourceID: ResourceID): (resource: Resource)`
         *   **requires**: A `Resource` entry with `id = resourceID` exists.
         *   **effects**: Returns the complete `Resource` object associated with this `resourceID`.
+    *   `listResources (): (resources: List<Resource>)`
+        *   **effects**: Returns a list of all `Resource` entries currently in the `state`. If no resources exist, an empty list is returned.
+    *   `listResourcesByOwner (owner: Owner): (resources: List<Resource>)`
+        *   **effects**: Returns a list of all `Resource` entries where the `owner` matches the provided `owner` parameter. If the specified owner has no resources, an empty list is returned.

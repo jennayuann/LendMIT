@@ -1,0 +1,38 @@
+---
+timestamp: 'Tue Oct 21 2025 14:10:30 GMT-0400 (Eastern Daylight Time)'
+parent: '[[../20251021_141030.bf63638a.md]]'
+content_id: fb1000ec39ee14f26b8c7161d21445f740cb43609e3b8e9e948f7cb1eb7908a8
+---
+
+# file: deno.json
+
+```json
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"]
+  },
+  "imports": {
+    "@concepts/": "./src/concepts/",
+    "@std/assert": "jsr:@std/assert@^1.0.15",
+    "@hono/hono": "jsr:@hono/hono",
+    "@std/fs": "jsr:@std/fs",
+    "@std/cli/parse-args": "jsr:@std/cli/parse-args",
+    "@std/path/to-file-url": "jsr:@std/path/to-file-url",
+    "@utils/": "./src/utils/",
+    "@/": "./src/",
+    "mongodb": "npm:mongodb"
+  },
+  "tasks": {
+    "start": "deno run --allow-env --allow-net --allow-read --allow-sys=osRelease src/main.ts",
+    "test": "deno test --allow-env --allow-net --allow-read --allow-sys=osRelease",
+    "concepts": "deno run --allow-net --allow-read --allow-sys --allow-env src/concept_server.ts --port 8000 --baseUrl /api"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-unversioned-import"]
+    }
+  },
+  "nodeModulesDir": "auto"
+}
+
+```

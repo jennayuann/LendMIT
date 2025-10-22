@@ -29,7 +29,7 @@ interface FollowRelationship {
 }
 
 // MongoDB collection name, plural form of the concept's state name
-const COLLECTION_NAME = "followrelationships";
+const COLLECTION_NAME = "FollowRelationships";
 
 export class Following {
   private followRelationships: Collection<FollowRelationship>;
@@ -129,16 +129,50 @@ export class Following {
     return { isFollowing: !!relationship };
   }
 
+  // /**
+  //  * Retrieves a list of all Followee IDs that the given follower is following.
+  //  * @action getFollowees (follower: Follower): (followeeIDs: Followee[])
+  //  * @effects Returns a list of all `Followee` IDs that the `follower` is following.
+  //  */
+  // async getFollowees(follower: Follower): Promise<{ followeeIDs: Followee[] }> {
+  //   const followees = await this.followRelationships.find(
+  //     { follower },
+  //     { projection: { followee: 1, _id: 0 } }, // Project only the followee ID
+  //   ).map((doc) => doc.followee)
+  //     .toArray();
+
+  //   return { followeeIDs: followees };
+  // }
+
+  // /**
+  //  * Retrieves a list of all Follower IDs that are following the given followee.
+  //  * @action getFollowers (followee: Followee): (followerIDs: Follower[])
+  //  * @effects Returns a list of all `Follower` IDs that are following the `followee`.
+  //  */
+  // async getFollowers(followee: Followee): Promise<{ followerIDs: Follower[] }> {
+  //   const followers = await this.followRelationships.find(
+  //     { followee },
+  //     { projection: { follower: 1, _id: 0 } }, // Project only the follower ID
+  //   ).map((doc) => doc.follower)
+  //     .toArray();
+
+  //   return { followerIDs: followers };
+  // }
+
   /**
    * Retrieves a list of all Followee IDs that the given follower is following.
+   * Accepts either a raw follower ID or a DTO { follower }.
    * @action getFollowees (follower: Follower): (followeeIDs: Followee[])
-   * @effects Returns a list of all `Followee` IDs that the `follower` is following.
    */
-  async getFollowees(follower: Follower): Promise<{ followeeIDs: Followee[] }> {
-    const followees = await this.followRelationships.find(
-      { follower },
-      { projection: { followee: 1, _id: 0 } }, // Project only the followee ID
-    ).map((doc) => doc.followee)
+  async getFollowees(follower: Follower): Promise<{ followeeIDs: Followee[] }>;
+  async getFollowees(args: { follower: Follower }): Promise<{ followeeIDs: Followee[] }>;
+  async getFollowees(input: Follower | { follower: Follower }): Promise<{ followeeIDs: Followee[] }> {
+    const followerId = typeof input === "string" ? input : input?.follower;
+    if (!followerId) throw new Error("Missing follower");
+
+    const followees = await this.followRelationships
+      .find({ follower: followerId }, { projection: { followee: 1, _id: 0 } })
+      .map((doc) => doc.followee)
       .toArray();
 
     return { followeeIDs: followees };
@@ -146,14 +180,18 @@ export class Following {
 
   /**
    * Retrieves a list of all Follower IDs that are following the given followee.
+   * Accepts either a raw followee ID or a DTO { followee }.
    * @action getFollowers (followee: Followee): (followerIDs: Follower[])
-   * @effects Returns a list of all `Follower` IDs that are following the `followee`.
    */
-  async getFollowers(followee: Followee): Promise<{ followerIDs: Follower[] }> {
-    const followers = await this.followRelationships.find(
-      { followee },
-      { projection: { follower: 1, _id: 0 } }, // Project only the follower ID
-    ).map((doc) => doc.follower)
+  async getFollowers(followee: Followee): Promise<{ followerIDs: Follower[] }>;
+  async getFollowers(args: { followee: Followee }): Promise<{ followerIDs: Follower[] }>;
+  async getFollowers(input: Followee | { followee: Followee }): Promise<{ followerIDs: Follower[] }> {
+    const followeeId = typeof input === "string" ? input : input?.followee;
+    if (!followeeId) throw new Error("Missing followee");
+
+    const followers = await this.followRelationships
+      .find({ followee: followeeId }, { projection: { follower: 1, _id: 0 } })
+      .map((doc) => doc.follower)
       .toArray();
 
     return { followerIDs: followers };

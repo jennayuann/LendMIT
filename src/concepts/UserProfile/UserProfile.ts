@@ -35,7 +35,7 @@ interface Profile {
 export class UserProfile {
   private userProfiles: Collection<Profile>;
   // The MongoDB collection name should be the plural form of the concept.
-  private readonly collectionName = "userprofiles";
+  private readonly collectionName = "UserProfiles";
 
   constructor() {
     this.userProfiles = db.collection<Profile>(this.collectionName);

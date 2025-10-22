@@ -410,25 +410,22 @@
 
 **Purpose:** Represent any generic entity that can be owned and described by a mandatory name and optional attributes.
 
-***
+---
 
 ## API Endpoints
 
 ### POST /api/Resource/createResource
 
-**Description:** Creates a new generic resource with an owner, a mandatory name, and optional category and description.
+**Description:** Creates a new resource with an owner, name, and optional category and description.
 
 **Requirements:**
-
-* `name` is not an empty string.
+- `name is not an empty string`.
 
 **Effects:**
-
-* Creates a new `Resource` entry with a unique `id`, the specified `owner`, `name`, `category`, and `description`.
-* Returns the `id` of the newly created resource.
+- Creates a new `Resource` entry with a unique `id`, the specified `owner`, `name`, `category`, and `description`.
+- Returns the `id` of the newly created resource.
 
 **Request Body:**
-
 ```json
 {
   "owner": "string",
@@ -439,7 +436,6 @@
 ```
 
 **Success Response Body (Action):**
-
 ```json
 {
   "resourceID": "string"
@@ -447,32 +443,28 @@
 ```
 
 **Error Response Body:**
-
 ```json
 {
   "error": "string"
 }
 ```
 
-***
+---
 
 ### POST /api/Resource/updateResource
 
-**Description:** Updates the name, category, or description of an existing resource.
+**Description:** Modifies the name, category, or description of an existing resource.
 
 **Requirements:**
-
-* A `Resource` entry with `id = resourceID` exists.
-* If `name` is provided (i.e., not `null`), `name` is not an empty string.
+- A `Resource` entry with `id = resourceID` exists.
+- If `name` is provided (i.e., not `null`), `name is not an empty string`.
 
 **Effects:**
-
-* If `name` is provided and is not an empty string, updates the `name` for the given `resourceID`.
-* If `category` is provided, updates the `category` for the given `resourceID`. If `null` is provided, it clears the existing `category`.
-* If `description` is provided, updates the `description` for the given `resourceID`. If `null` is provided, it clears the existing `description`.
+- If `name` is provided and is not an empty string, updates the `name` for the given `resourceID`.
+- If `category` is provided, updates the `category` for the given `resourceID`. If `null` is provided, it clears the existing `category`.
+- If `description` is provided, updates the `description` for the given `resourceID`. If `null` is provided, it clears the existing `description`.
 
 **Request Body:**
-
 ```json
 {
   "resourceID": "string",
@@ -483,35 +475,30 @@
 ```
 
 **Success Response Body (Action):**
-
 ```json
 {}
 ```
 
 **Error Response Body:**
-
 ```json
 {
   "error": "string"
 }
 ```
 
-***
+---
 
 ### POST /api/Resource/deleteResource
 
-**Description:** Deletes an existing resource by its ID.
+**Description:** Deletes an existing resource.
 
 **Requirements:**
-
-* A `Resource` entry with `id = resourceID` exists.
+- A `Resource` entry with `id = resourceID` exists.
 
 **Effects:**
-
-* Deletes the `Resource` entry corresponding to `resourceID`.
+- Deletes the `Resource` entry corresponding to `resourceID`.
 
 **Request Body:**
-
 ```json
 {
   "resourceID": "string"
@@ -519,35 +506,30 @@
 ```
 
 **Success Response Body (Action):**
-
 ```json
 {}
 ```
 
 **Error Response Body:**
-
 ```json
 {
   "error": "string"
 }
 ```
 
-***
+---
 
 ### POST /api/Resource/getResource
 
-**Description:** Retrieves the complete details of a specific resource.
+**Description:** Retrieves the details of a specific resource.
 
 **Requirements:**
-
-* A `Resource` entry with `id = resourceID` exists.
+- A `Resource` entry with `id = resourceID` exists.
 
 **Effects:**
-
-* Returns the complete `Resource` object associated with this `resourceID`.
+- Returns the complete `Resource` object associated with this `resourceID`.
 
 **Request Body:**
-
 ```json
 {
   "resourceID": "string"
@@ -555,7 +537,6 @@
 ```
 
 **Success Response Body (Action):**
-
 ```json
 {
   "resource": {
@@ -569,15 +550,331 @@
 ```
 
 **Error Response Body:**
-
 ```json
 {
   "error": "string"
 }
 ```
 
+---
+
+### POST /api/Resource/listResources
+
+**Description:** Retrieves a list of all resources currently available.
+
+**Requirements:**
+- true
+
+**Effects:**
+- Returns a list of all `Resource` entries currently in the `state`.
+- If no resources exist, an empty list is returned.
+
+**Request Body:**
+```json
+{}
+```
+
+**Success Response Body (Action):**
+```json
+{
+  "resources": [
+    {
+      "id": "string",
+      "owner": "string",
+      "name": "string",
+      "category": "string | null",
+      "description": "string | null"
+    }
+  ]
+}
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
+### POST /api/Resource/listResourcesByOwner
+
+**Description:** Retrieves a list of resources owned by a specific owner.
+
+**Requirements:**
+- true
+
+**Effects:**
+- Returns a list of all `Resource` entries where the `owner` matches the provided `owner` parameter.
+- If the specified owner has no resources, an empty list is returned.
+
+**Request Body:**
+```json
+{
+  "owner": "string"
+}
+```
+
+**Success Response Body (Action):**
+```json
+{
+  "resources": [
+    {
+      "id": "string",
+      "owner": "string",
+      "name": "string",
+      "category": "string | null",
+      "description": "string | null"
+    }
+  ]
+}
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+``````
+
 ***
 
+# API Specification: ResourceIntent Concept
+
+**Purpose:** Associate any resource with an intent.
+
+---
+
+## API Endpoints
+
+### POST /api/ResourceIntent/defineIntent
+
+**Description:** Defines a new intent label, making it available for use.
+
+**Requirements:**
+- No `IntentDefinition` with `intentName` exists.
+
+**Effects:**
+- Adds `intentName` to `IntentDefinitions`.
+
+**Request Body:**
+```json
+{
+  "intentName": "string"
+}
+```
+
+**Success Response Body (Action):**
+```json
+{}
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
+### POST /api/ResourceIntent/undefineIntent
+
+**Description:** Removes an existing intent label, provided it's not currently in use by any resource.
+
+**Requirements:**
+- An `IntentDefinition` for `intentName` exists.
+- No `IntentEntry` uses `intentName`.
+
+**Effects:**
+- Removes `intentName` from `IntentDefinitions`.
+
+**Request Body:**
+```json
+{
+  "intentName": "string"
+}
+```
+
+**Success Response Body (Action):**
+```json
+{}
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
+### POST /api/ResourceIntent/setIntent
+
+**Description:** Associates a specific intent label with a given resource, creating or updating the association.
+
+**Requirements:**
+- `intent` must be a defined `IntentDefinition`.
+
+**Effects:**
+- Creates or updates the `IntentEntry` for `resource` with `intent`.
+
+**Request Body:**
+```json
+{
+  "resource": "ResourceID",
+  "intent": "string"
+}
+```
+
+**Success Response Body (Action):**
+```json
+{}
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
+### POST /api/ResourceIntent/clearIntent
+
+**Description:** Removes any intent label associated with a specified resource.
+
+**Requirements:**
+- An `IntentEntry` for `resource` exists.
+
+**Effects:**
+- Removes the `IntentEntry` for `resource`.
+
+**Request Body:**
+```json
+{
+  "resource": "ResourceID"
+}
+```
+
+**Success Response Body (Action):**
+```json
+{}
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
+### POST /api/ResourceIntent/getIntent
+
+**Description:** Retrieves the intent label currently associated with a specified resource.
+
+**Requirements:**
+- (None)
+
+**Effects:**
+- Returns the `IntentEntry` for `resource`, or `Null` if none exists.
+
+**Request Body:**
+```json
+{
+  "resource": "ResourceID"
+}
+```
+
+**Success Response Body (Query):**
+```json
+[
+  {
+    "resource": "ResourceID",
+    "intent": "string"
+  }
+]
+```
+*(Returns an empty array `[]` if no intent is associated with the resource)*
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
+### POST /api/ResourceIntent/listIntents
+
+**Description:** Retrieves a list of all currently defined intent labels.
+
+**Requirements:**
+- (None)
+
+**Effects:**
+- Returns all defined `intentName`s.
+
+**Request Body:**
+```json
+{}
+```
+
+**Success Response Body (Query):**
+```json
+[
+  "string",
+  "string"
+]
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
+### POST /api/ResourceIntent/listResourcesByIntent
+
+**Description:** Retrieves a list of resources associated with a particular intent label.
+
+**Requirements:**
+- `intent` must be a defined `IntentDefinition`.
+
+**Effects:**
+- Returns `ResourceID`s with the given `intent`.
+
+**Request Body:**
+```json
+{
+  "intent": "string"
+}
+```
+
+**Success Response Body (Query):**
+```json
+[
+  "ResourceID",
+  "ResourceID"
+]
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+---
 # API Specification: ResourceStatus Concept
 
 **Purpose:** Provide a generic and configurable mechanism to manage and track the lifecycle status of any resource type, enforcing application-defined transition rules between states.

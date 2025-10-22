@@ -15,40 +15,67 @@ const flags = parseArgs(Deno.args, {
 
 const PORT = parseInt(flags.port, 10);
 const BASE_URL = flags.baseUrl;
-// The repo's concepts are under src/concepts (server is run from repo root)
 const CONCEPTS_DIR = "src/concepts";
 
 /**
- * Main server function to initialize DB, load concepts, and start the server.
+ * Map a JSON request body into positional arguments for a concept method.
+ *
+ * Rules:
+ * - 0 args: []
+ * - Array body: spread as is
+ * - Object body:
+ *    - If method arity is 1: pass the full object (DTO-style)
+ *    - If method arity > 1: pass Object.values(body) in key insertion order
+ * - Primitive/other: [body] (unless arity is 0)
  */
+function buildArgs(fn: Function, body: unknown): unknown[] {
+  const arity = fn.length;
+
+  if (arity === 0) return [];
+
+  if (Array.isArray(body)) {
+    return body as unknown[];
+  }
+
+  if (body && typeof body === "object") {
+    if (arity === 1) {
+      // One-arg methods get the DTO object as-is
+      return [body];
+    }
+    // Multi-arg methods: spread values in insertion order
+    return Object.values(body as Record<string, unknown>);
+  }
+
+  if (body === undefined) {
+    return Array.from({ length: arity }).map(() => undefined);
+  }
+
+  return [body];
+}
+
 async function main() {
   const [db] = await getDb();
   const app = new Hono();
 
   app.get("/", (c) => c.text("Concept Server is running."));
 
-  // --- Dynamic Concept Loading and Routing ---
   console.log(`Scanning for concepts in ./${CONCEPTS_DIR}...`);
 
-  for await (
-    const entry of walk(CONCEPTS_DIR, {
-      maxDepth: 1,
-      includeDirs: true,
-      includeFiles: false,
-    })
-  ) {
-    if (entry.path === CONCEPTS_DIR) continue; // Skip the root directory
+  for await (const entry of walk(CONCEPTS_DIR, {
+    maxDepth: 1,
+    includeDirs: true,
+    includeFiles: false,
+  })) {
+    if (entry.path === CONCEPTS_DIR) continue;
 
     const conceptName = entry.name;
-    // Expect a file named <ConceptName>.ts inside the concept folder
     const conceptFilePath = `${entry.path}/${conceptName}.ts`;
 
     try {
-      // ensure file exists before attempting to import
       await Deno.stat(conceptFilePath);
       const modulePath = toFileUrl(Deno.realPathSync(conceptFilePath)).href;
       const module = await import(modulePath);
-      // Accept default export or a named export matching the folder name
+
       type Newable = new (...args: unknown[]) => object;
       let ConceptClass: Newable | null = null;
       if (typeof module.default === "function") {
@@ -56,7 +83,6 @@ async function main() {
       } else if (typeof module[conceptName] === "function") {
         ConceptClass = module[conceptName] as Newable;
       } else {
-        // fallback: pick the first exported function/class
         for (const k of Object.keys(module)) {
           if (typeof module[k] === "function") {
             ConceptClass = module[k] as Newable;
@@ -66,39 +92,31 @@ async function main() {
       }
 
       if (!ConceptClass) {
-        console.warn(
-          `! No valid concept class found in ${conceptFilePath}. Skipping.`,
-        );
+        console.warn(`! No valid concept class found in ${conceptFilePath}. Skipping.`);
         continue;
       }
 
-      // Instantiate with the DB if the constructor accepts it; otherwise try no-arg.
       let instance: object;
       try {
         instance = new ConceptClass(db as unknown as undefined);
-      } catch (_err1) {
+      } catch {
         try {
           instance = new ConceptClass();
-        } catch (_err2) {
-          console.warn(
-            `! Could not instantiate concept class from ${conceptFilePath}. Skipping.`,
-          );
+        } catch {
+          console.warn(`! Could not instantiate concept class from ${conceptFilePath}. Skipping.`);
           continue;
         }
       }
+
       const conceptApiName = conceptName;
-      console.log(
-        `- Registering concept: ${conceptName} at ${BASE_URL}/${conceptApiName}`,
-      );
+      console.log(`- Registering concept: ${conceptName} at ${BASE_URL}/${conceptApiName}`);
 
       const prototype = Object.getPrototypeOf(instance);
-      const methodNames = Object.getOwnPropertyNames(prototype).filter(
-        (name) => {
-          if (name === "constructor") return false;
-          const val = (instance as Record<string, unknown>)[name];
-          return typeof val === "function";
-        },
-      );
+      const methodNames = Object.getOwnPropertyNames(prototype).filter((name) => {
+        if (name === "constructor") return false;
+        const val = (instance as Record<string, unknown>)[name];
+        return typeof val === "function";
+      });
 
       for (const methodName of methodNames) {
         const actionName = methodName;
@@ -106,29 +124,36 @@ async function main() {
 
         app.post(route, async (c) => {
           try {
-            const body = await c.req.json().catch(() => ({})); // Handle empty body
+            const body = await c.req.json().catch(() => ({}));
             const fn = (instance as Record<string, unknown>)[methodName];
-            if (typeof fn !== "function") {
-              throw new Error("Action not callable");
+            if (typeof fn !== "function") throw new Error("Action not callable");
+
+            const args = buildArgs(fn as Function, body);
+
+            if (Deno.env.get("DEBUG_CONCEPTS") === "1") {
+              console.debug(`→ ${conceptName}.${actionName}(${(fn as Function).length})`, {
+                body,
+                args,
+              });
             }
-            // call with instance as this
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const res =
-              await (fn as (...args: unknown[]) => Promise<unknown> | unknown)
-                .call(instance, body as unknown);
+
+            const res = await (
+              fn as (...args: unknown[]) => Promise<unknown> | unknown
+            ).call(instance, ...args);
+
             return c.json(res);
           } catch (err) {
             console.error(`Error in ${conceptName}.${methodName}:`, err);
-            return c.json({ error: "An internal server error occurred." }, 500);
+            const message =
+              err instanceof Error ? err.message : "An internal server error occurred.";
+            return c.json({ error: message }, 500);
           }
         });
+
         console.log(`  - Endpoint: POST ${route}`);
       }
     } catch (e) {
-      console.error(
-        `! Error loading concept from ${conceptFilePath}:`,
-        e,
-      );
+      console.error(`! Error loading concept from ${conceptFilePath}:`, e);
     }
   }
 
@@ -136,5 +161,4 @@ async function main() {
   Deno.serve({ port: PORT }, app.fetch);
 }
 
-// Run the server
 main();

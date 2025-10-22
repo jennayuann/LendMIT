@@ -2,7 +2,7 @@
 
 import { Collection, Db } from "mongodb";
 // Assuming these utilities are available as per guide instructions
-import { ID, Empty } from "@utils/types.ts";
+import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
 // Import the db instance from the connection file
 import { db } from "@/db/connection.ts";
@@ -26,10 +26,10 @@ export type Owner = ID;
  * This includes the internal `_id` field.
  */
 export interface ResourceDocument {
-  _id: ResourceID;     // MongoDB document ID, branded as ResourceID
-  owner: Owner;        // Owner of the resource
-  name: string;        // Mandatory name of the resource
-  category?: string;   // Optional category
+  _id: ResourceID; // MongoDB document ID, branded as ResourceID
+  owner: Owner; // Owner of the resource
+  name: string; // Mandatory name of the resource
+  category?: string; // Optional category
   description?: string; // Optional description
 }
 
@@ -135,7 +135,8 @@ export class ResourceConcept {
       throw new Error("Resource name cannot be updated to an empty string.");
     }
 
-    const updateOperations: { $set?: Partial<ResourceDocument>; $unset?: any } = {};
+    const updateOperations: { $set?: Partial<ResourceDocument>; $unset?: any } =
+      {};
     const $set: Partial<ResourceDocument> = {};
     const $unset: any = {};
 
@@ -168,7 +169,9 @@ export class ResourceConcept {
     // that would result in a database change), we still need to check if the
     // resource exists to satisfy the "requires" condition. This is a no-op update.
     if (Object.keys(updateOperations).length === 0) {
-      const exists = await this.resources.countDocuments({ _id: resourceID }, { limit: 1 });
+      const exists = await this.resources.countDocuments({ _id: resourceID }, {
+        limit: 1,
+      });
       if (exists === 0) {
         throw new Error(`Resource with ID '${resourceID}' not found.`);
       }
@@ -233,6 +236,36 @@ export class ResourceConcept {
     // Convert the internal ResourceDocument (_id) to the public Resource (id) format
     const { _id, ...rest } = resourceDoc;
     return { id: _id, ...rest };
+  }
+
+  /**
+   * Lists all Resource entries currently stored.
+   *
+   * @action listResources (): (resources: List<Resource>)
+   * @effects Returns a list of all Resource entries currently in the state. If none exist, returns an empty list.
+   */
+  async listResources(): Promise<{ resources: Resource[] }> {
+    const docs = await this.resources.find({}).toArray();
+    const resources: Resource[] = docs.map(({ _id, ...rest }) => ({
+      id: _id,
+      ...rest,
+    }));
+    return { resources };
+  }
+
+  /**
+   * Lists all Resource entries owned by the specified owner.
+   *
+   * @action listResourcesByOwner (owner: Owner): (resources: List<Resource>)
+   * @effects Returns a list of all Resource entries where owner matches the provided owner. If none, returns an empty list.
+   */
+  async listResourcesByOwner(owner: Owner): Promise<{ resources: Resource[] }> {
+    const docs = await this.resources.find({ owner }).toArray();
+    const resources: Resource[] = docs.map(({ _id, ...rest }) => ({
+      id: _id,
+      ...rest,
+    }));
+    return { resources };
   }
 }
 
