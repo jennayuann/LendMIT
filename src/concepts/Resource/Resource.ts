@@ -203,16 +203,6 @@ export class ResourceConcept {
    * @returns An empty object (`Empty`).
    * @throws Error if a resource with the given `resourceID` does not exist.
    */
-  // async deleteResource(resourceID: ResourceID): Promise<Empty> {
-  //   // Enforce "requires" condition: A `Resource` entry with `id = resourceID` exists.
-  //   const result = await this.resources.deleteOne({ _id: resourceID });
-
-  //   if (result.deletedCount === 0) {
-  //     throw new Error(`Resource with ID '${resourceID}' not found.`);
-  //   }
-
-  //   return {};
-  // }
   async deleteResource({ resourceID }: { resourceID: string }): Promise<Empty> {
     // Convert to your ResourceID type
     const id = resourceID as ResourceID;
