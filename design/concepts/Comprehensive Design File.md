@@ -1,4 +1,4 @@
-## Overview 
+## Overview
 In Assignment 2, concepts like `User`, `EmailAuth`, `Posting`, and `Subscriptions` were not modular and dealt with multiple responsibilities. This time, I redesigned the application around smaller, modular concepts that are more general and reusable.
 
 _(Design changes for individual concepts are explained in detail in a file named "design-file" in their respective folders: design/concepts/CONCEPT_NAME/design-file)._
@@ -18,54 +18,52 @@ Mixed two unrelated ideas: (1) who follows or subscribes to what, and (2) sendin
 
 ## Changes
 ### **User → removed, replaced by generic type, and complemented by UserProfile**
-Based on TA feedback, `User` didn’t need to be its own concept.  
-The identity of a user can be represented by a generic type parameter (`User`) shared across other concepts like `UserAuthentication` and `UserProfile`. This keeps identity flexible and avoids maintaining redundant state for something that only needs to serve as an ID. 
+Based on TA feedback, `User` didn’t need to be its own concept.
+The identity of a user can be represented by a generic type parameter (`User`) shared across other concepts like `UserAuthentication` and `UserProfile`. This keeps identity flexible and avoids maintaining redundant state for something that only needs to serve as an ID.
 
 To handle descriptive information that used to live in the old `User` concept, I introduced a new concept called **UserProfile**.
 - **UserProfile** — manages a user’s visible, editable attributes separately from authentication.
 It allows users to update their profile details safely without affecting credentials or verification logic. This separation allows the application to divide secure data (in `UserAuthentication`) from general display data (in `UserProfile`).
 ### **EmailAuth → merged into UserAuthentication**
-In the TA’s feedback and in Problem Set 1's example, we saw that authentication concepts can include verification tokens as part of the same model (like `PasswordAuthentication` with email confirmation).  
-Following that model, I merged `EmailAuth` into UserAuthentication.  
-This unifies registration, password handling, and verification under one concept, instead of treating verification as a separate concern.  
+In the TA’s feedback and in Problem Set 1's example, we saw that authentication concepts can include verification tokens as part of the same model (like `PasswordAuthentication` with email confirmation).
+Following that model, I merged `EmailAuth` into UserAuthentication.
+This unifies registration, password handling, and verification under one concept, instead of treating verification as a separate concern.
 The result is a simpler flow where the same concept manages users’ credentials, their verification codes, and their status transitions (`UNVERIFIED → VERIFIED → DEACTIVATED`).
 - **UserAuthentication** — manages user credentials, verification codes, and lifecycle states.
 
-### **Posting → split into Resource, ResourceIntent, ResourceStatus, and TimeBoundedResource**
-The old `Posting` concept was the biggest issue—it handled too much at once: user ownership, intent, descriptive data, timing, and lifecycle rules.  
+### **Posting → split into Resource, ResourceIntent, and TimeBoundedResource**
+The old `Posting` concept was the biggest issue—it handled too much at once: user ownership, intent, and descriptive data.
 It wasn’t general enough to apply outside the lending/borrowing scenario. I decomposed it into three separate, reusable concepts:
 
 - **Resource** — represents any ownable entity with name, category, and description.
 
 - **ResourceIntent** — captures what the intent of a resource is.
-    
-- **ResourceStatus** — manages lifecycle transitions between states.
-    
+
 - **TimeBoundedResource** — defines availability periods and expiration windows.
-    
+
 By doing this, I made each concern modular and reusable for any application. Now, these same concepts can describe listings, documents, items, or other resource types without redefinition.
 
 ### **Subscriptions → split into Following and NotificationLog**
-`Subscriptions` tried to handle both relationship management and notifications.  
+`Subscriptions` tried to handle both relationship management and notifications.
 To simplify it, I split it into two clear, minimal concepts:
 
 - **Following** — tracks who follows whom (follower → followee).
-    
+
 - **NotificationLog** — handles event logging, delivery, and dismissal for any type of notification.
-    
+
 
 This design is cleaner and more general: you can now follow users, resources, or categories, and generate notifications from any concept when something changes.
 
 ## How the concepts fit together now
 
 - **UserAuthentication + UserProfile** manage who someone is and how they appear.
-    
-- **Resource**, **ResourceIntent**, **ResourceStatus**, and **TimeBoundedResource** describe what they create, its intent, its state, and its availability.
-    
+
+- **Resource**, **ResourceIntent**, and **TimeBoundedResource** describe what they create, its intent, and its state.
+
 - **Following** connects users to one another.
-    
+
 - **NotificationLog** keeps track of updates and events that followers care about.
-    
+
 
 Each concept works on its own but can synchronize through IDs or event triggers when needed (for example, when a resource expires or a user deactivates).
 
@@ -73,7 +71,7 @@ Each concept works on its own but can synchronize through IDs or event triggers 
 ### 1. Splitting the Posting Concept
 Snapshot Link: [@response.32516e63](../../context/design/concepts/refactor-concepts-prompt.md/steps/response.32516e63.md)
 
-When I started refactoring `Posting` after the TA’s feedback for Assignment 2, I realized it was handling way too many responsibilities at once, but I wasn’t sure how to split it without losing the original concept's meaning. It was surprisingly hard to design modular concepts once I already had a specific application in mind, since that made my thinking too narrow. After feeding all my context into this LLM, its response on how to refactor into `Resource`, `ResourceStatus`, and `TimeBoundedResource` was super clear and cohesive. Typically, when I work with ChatGPT or some other LLM, it's difficult and tiresome to feed it a lot of context, so I usually don't, but I was super surprised at how easy it is to feed this Context tool a lot of context.  
+When I started refactoring `Posting` after the TA’s feedback for Assignment 2, I realized it was handling way too many responsibilities at once, but I wasn’t sure how to split it without losing the original concept's meaning. It was surprisingly hard to design modular concepts once I already had a specific application in mind, since that made my thinking too narrow. After feeding all my context into this LLM, its response on how to refactor into `Resource`, `ResourceStatus`, and `TimeBoundedResource` was super clear and cohesive. Typically, when I work with ChatGPT or some other LLM, it's difficult and tiresome to feed it a lot of context, so I usually don't, but I was super surprised at how easy it is to feed this Context tool a lot of context.
 
 ### 2. User
 Snapshot Link: [@response.47c73e21](../../context/design/concepts/refactor-concepts-prompt.md/steps/response.47c73e21.md)
@@ -94,3 +92,64 @@ I had been using the LLM to generate test suites for each concept, and most of t
 Snapshot Link: [@response.27619791](../../context/design/concepts/Resource/prompts/implementation-prompt.md/steps/response.27619791.md)
 
 While testing concurrent updates in the `Resource` concept, I discovered a race condition in `updateResource`. Two updates running close together could overwrite each other or lead to inconsistent data. Debugging it reminded me of concurrency problems from 6.1020, which was really cool. I prompted the LLM to fix it, and it did it well.
+
+<br><br>
+
+
+# Backend Design Updates (Assignment 4b)
+Also copy and pasted at the end of the Comprehensive Design File -> [Comprehensive Design File](design/concepts/Comprehensive%20Design%20File.md)
+
+## 1. Removed Concept: `ResourceStatus`
+The `ResourceStatus` concept was **removed entirely**.
+
+### Rationale
+- The lifecycle state management previously handled by `ResourceStatus` (e.g., `available`, `requested`, `lent`, `returned`) was too rigid and duplicated information that could be inferred from related concepts (`ResourceIntent`, `TimeBoundedResource`).
+- Simplifying this logic allowed for cleaner queries, reduced coupling across collections, and made it easier for the frontend to maintain reactive state directly.
+
+### Impact
+- All backend logic previously referencing `ResourceStatus` was removed.
+- The system now relies on `TimeBoundedResource`'s start and end time of a resource and owners to delete posts to manage visibility of a resource on the MatchBoard.
+
+
+## 2. Added Query: `deleteTimeWindow` in `TimeBoundedResource`
+### Purpose
+Ensures synchronized deletion across related concepts when a post is deleted.
+
+### Behavior
+When a `TimeBoundedResource` entry is deleted, the backend automatically deletes all corresponding records in:
+- `Resource`
+- `ResourceIntent`
+- `TimeBoundedResource`
+
+### Rationale
+- `TimeBoundedResource` originally lacked a delete action.
+- Prevents orphaned records in MongoDB.
+- Keeps the data model consistent across all collections.
+
+
+## 3. Added Query — `getEmail` in `UserAuthentication`
+
+### **Purpose**
+Enables users to contact post owners directly from the interface.
+
+### **Description**
+This query retrieves a user’s registered email given their user ID.
+The frontend uses this email to open a prefilled Outlook draft with the post owner’s email address auto-populated in the **“To”** field.
+
+### **Example Flow**
+1. A user clicks **“Contact Owner”** on a listing.
+2. The frontend calls `UserAuthentication.getEmail(ownerId)`.
+3. The browser opens Outlook with the owner’s email prefilled.
+
+### **Benefits**
+- Streamlines communication between borrowers and lenders.
+- Improves overall user experience with one-click contact initiation.
+
+
+## 4. API Specification Updates
+
+### **Description**
+The API specification was regenerated to reflect the two new queries and the removal of `ResourceStatus`.
+
+### **Deprecated Endpoints**
+- All `/ResourceStatus/...` endpoints have been removed.

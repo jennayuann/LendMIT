@@ -1,56 +1,57 @@
-# LendMIT — 6.1040 Assignment 4a
+# Backend Design Updates (Assignment 4b)
+Also copy and pasted at the end of the Comprehensive Design File -> [Comprehensive Design File](design/concepts/Comprehensive%20Design%20File.md)
 
-## Concepts and required deliverables:
+## 1. Removed Concept: `ResourceStatus`
+The `ResourceStatus` concept was **removed entirely**.
 
-### UserAuthentication
-- Spec: [UserAuthentication—Spec](design/concepts/UserAuthentication/UserAuthentication.md)
-- Implementation: [UserAuthentication—Implementation](src/concepts/UserAuthentication/UserAuthentication.ts)
-- Tests: [UserAuthentication—Tests](src/concepts/UserAuthentication/UserAuthentication.test.ts)
-- Test output: [UserAuthentication—Test Output](src/concepts/UserAuthentication/test-output.md)
-- Design notes: [UserAuthentication—Design File](design/concepts/UserAuthentication/design-file.md)
+### Rationale
+- The lifecycle state management previously handled by `ResourceStatus` (e.g., `available`, `requested`, `lent`, `returned`) was too rigid and duplicated information that could be inferred from related concepts (`ResourceIntent`, `TimeBoundedResource`).
+- Simplifying this logic allowed for cleaner queries, reduced coupling across collections, and made it easier for the frontend to maintain reactive state directly.
 
-### UserProfile
-- Spec: [UserProfile—Spec](design/concepts/UserProfile/UserProfile.md)
-- Implementation: [UserProfile—Implementation](src/concepts/UserProfile/UserProfile.ts)
-- Tests: [UserProfile—Tests](src/concepts/UserProfile/UserProfile.test.ts)
-- Test output: [UserProfile—Test Output](src/concepts/UserProfile/test-output.md)
-- Design notes: [UserProfile—Design File](design/concepts/UserProfile/design-file.md)
+### Impact
+- All backend logic previously referencing `ResourceStatus` was removed.
+- The system now relies on `TimeBoundedResource`'s start and end time of a resource and owners to delete posts to manage visibility of a resource on the MatchBoard.
 
-### Resource
-- Spec: [Resource—Spec](design/concepts/Resource/Resource.md)
-- Implementation: [Resource—Implementation](src/concepts/Resource/Resource.ts)
-- Tests: [Resource—Tests](src/concepts/Resource/Resource.test.ts)
-- Test output: [Resource—Test Output](src/concepts/Resource/test-output.md)
-- Design notes: [Resource—Design File](design/concepts/Resource/design-file.md)
 
-### ResourceStatus
-- Spec: [ResourceStatus—Spec](design/concepts/ResourceStatus/ResourceStatus.md)
-- Implementation: [ResourceStatus—Implementation](src/concepts/ResourceStatus/ResourceStatus.ts)
-- Tests: [ResourceStatus—Tests](src/concepts/ResourceStatus/ResourceStatus.test.ts)
-- Test output: [ResourceStatus—Test Output](src/concepts/ResourceStatus/test-output.md)
-- Design notes: [ResourceStatus—Design File](design/concepts/ResourceStatus/design-file.md)
+## 2. Added Query: `deleteTimeWindow` in `TimeBoundedResource`
+### Purpose
+Ensures synchronized deletion across related concepts when a post is deleted.
 
-### TimeBoundedResource
-- Spec: [TimeBoundedResource—Spec](design/concepts/TimeBoundedResource/TimeBoundedResource.md)
-- Implementation: [TimeBoundedResource—Implementation](src/concepts/TimeBoundedResource/TimeBoundedResource.ts)
-- Tests: [TimeBoundedResource—Tests](src/concepts/TimeBoundedResource/TimeBoundedResource.test.ts)
-- Test output: [TimeBoundedResource—Test Output](src/concepts/TimeBoundedResource/test-output.md)
-- Design notes: [TimeBoundedResource—Design File](design/concepts/TimeBoundedResource/design-file.md)
+### Behavior
+When a `TimeBoundedResource` entry is deleted, the backend automatically deletes all corresponding records in:
+- `Resource`
+- `ResourceIntent`
+- `TimeBoundedResource`
 
-### Following
-- Spec: [Following—Spec](design/concepts/Following/Following.md)
-- Implementation: [Following—Implementation](src/concepts/Following/Following.ts)
-- Tests: [Following—Tests](src/concepts/Following/Following.test.ts)
-- Test output: [Following—Test Output](src/concepts/Following/test-output.md)
-- Design notes: [Following—Design File](design/concepts/Following/design-file.md)
+### Rationale
+- `TimeBoundedResource` originally lacked a delete action.
+- Prevents orphaned records in MongoDB.
+- Keeps the data model consistent across all collections.
 
-### NotificationLog
-- Spec: [NotificationLog—Spec](design/concepts/NotificationLog/NotificationLog.md)
-- Implementation: [NotificationLog—Implementation](src/concepts/NotificationLog/NotificationLog.ts)
-- Tests: [NotificationLog—Tests](src/concepts/NotificationLog/NotificationLog.test.ts)
-- Test output: [NotificationLog—Test Output](src/concepts/NotificationLog/test-output.md)
-- Design notes: [NotificationLog—Design File](design/concepts/NotificationLog/design-file.md)
 
-## Application-level design file and interesting moments
+## 3. Added Query — `getEmail` in `UserAuthentication`
 
-- Application design overview and 5–10 “interesting moments” with snapshot links: [Comprehensive Design File](design/concepts/Comprehensive%20Design%20File.md)
+### **Purpose**
+Enables users to contact post owners directly from the interface.
+
+### **Description**
+This query retrieves a user’s registered email given their user ID.
+The frontend uses this email to open a prefilled Outlook draft with the post owner’s email address auto-populated in the **“To”** field.
+
+### **Example Flow**
+1. A user clicks **“Contact Owner”** on a listing.
+2. The frontend calls `UserAuthentication.getEmail(ownerId)`.
+3. The browser opens Outlook with the owner’s email prefilled.
+
+### **Benefits**
+- Streamlines communication between borrowers and lenders.
+- Improves overall user experience with one-click contact initiation.
+
+
+## 4. API Specification Updates
+
+### **Description**
+The API specification was regenerated to reflect the two new queries and the removal of `ResourceStatus`.
+
+### **Deprecated Endpoints**
+- All `/ResourceStatus/...` endpoints have been removed.

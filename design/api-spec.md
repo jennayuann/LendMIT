@@ -43,6 +43,39 @@
 
 ***
 
+### POST /api/UserAuthentication/getEmail
+
+**Description:** Retrieves the email address associated with a given user ID.
+
+**Requirements:**
+- A `UserAccount` entry for `user` exists.
+
+**Effects:**
+- Returns the `email` for the specified `user`.
+
+**Request Body:**
+```json
+{
+  "user": "User"
+}
+```
+
+**Success Response Body (Action):**
+```json
+{
+  "email": "String"
+}
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
 ### POST /api/Following/unfollow
 
 **Description:** Terminates an existing following relationship where a specified follower stops following a specified followee.
@@ -875,165 +908,6 @@
 }
 ```
 ---
-# API Specification: ResourceStatus Concept
-
-**Purpose:** Provide a generic and configurable mechanism to manage and track the lifecycle status of any resource type, enforcing application-defined transition rules between states.
-
-***
-
-## API Endpoints
-
-### POST /api/ResourceStatus/defineStatus
-
-**Description:** Define a new status label that can be used for resources.
-
-**Requirements:**
-
-* A `StatusDefinition` for `statusName` does not exist.
-
-**Effects:**
-
-* Adds `statusName` to the set of `StatusDefinitions`.
-
-**Request Body:**
-
-```json
-{
-  "statusName": "String"
-}
-```
-
-**Success Response Body (Action):**
-
-```json
-{}
-```
-
-**Error Response Body:**
-
-```json
-{
-  "error": "string"
-}
-```
-
-***
-
-### POST /api/ResourceStatus/defineTransition
-
-**Description:** Define a valid transition rule between two existing status labels.
-
-**Requirements:**
-
-* A `StatusDefinition` for `fromStatus` exists.
-* A `StatusDefinition` for `toStatus` exists.
-* A `TransitionRule` from `fromStatus` to `toStatus` does not already exist.
-
-**Effects:**
-
-* Adds a `TransitionRule` (from `fromStatus`, to `toStatus`) to the set of `TransitionRules`.
-
-**Request Body:**
-
-```json
-{
-  "fromStatus": "String",
-  "toStatus": "String"
-}
-```
-
-**Success Response Body (Action):**
-
-```json
-{}
-```
-
-**Error Response Body:**
-
-```json
-{
-  "error": "string"
-}
-```
-
-***
-
-### POST /api/ResourceStatus/createEntry
-
-**Description:** Create a new status entry for a specific resource with an initial status.
-
-**Requirements:**
-
-* A `StatusEntry` for `resource` does not exist.
-* A `StatusDefinition` for `initialStatus` exists.
-
-**Effects:**
-
-* Creates a new `StatusEntry` for `resource` and sets its `currentStatus` to `initialStatus`.
-
-**Request Body:**
-
-```json
-{
-  "resource": "ResourceID",
-  "initialStatus": "String"
-}
-```
-
-**Success Response Body (Action):**
-
-```json
-{}
-```
-
-**Error Response Body:**
-
-```json
-{
-  "error": "string"
-}
-```
-
-***
-
-### POST /api/ResourceStatus/transition
-
-**Description:** Transition a resource's current status to a new target status, if a valid transition rule exists.
-
-**Requirements:**
-
-* A `StatusEntry` for `resource` exists.
-* A `StatusDefinition` for `targetStatus` exists.
-* A `TransitionRule` from `currentStatus` to `targetStatus` exists.
-
-**Effects:**
-
-* Updates the `currentStatus` of `resource` to `targetStatus`.
-
-**Request Body:**
-
-```json
-{
-  "resource": "ResourceID",
-  "targetStatus": "String"
-}
-```
-
-**Success Response Body (Action):**
-
-```json
-{}
-```
-
-**Error Response Body:**
-
-```json
-{
-  "error": "string"
-}
-```
-
-***
 
 # API Specification: TimeBoundedResource Concept
 
@@ -1141,6 +1015,41 @@
 * This action serves as an event notification.
 * It explicitly changes no state within this concept.
 * Its occurrence signals to other concepts (via synchronization) that the resource's time-bound availability (as defined by its `availableUntil` property) has ended.
+
+**Request Body:**
+
+```json
+{
+  "resource": "string"
+}
+```
+
+**Success Response Body (Action):**
+
+```json
+{}
+```
+
+**Error Response Body:**
+
+```json
+{
+  "error": "string"
+}
+```
+
+***
+### POST /api/TimeBoundedResource/deleteTimeWindow
+
+**Description:** Deletes the time window associated with a specified resource.
+
+**Requirements:**
+
+* A `TimeWindow` entry exists for `resource`.
+
+**Effects:**
+
+* Deletes the `TimeWindow` entry for the specified `resource`.
 
 **Request Body:**
 

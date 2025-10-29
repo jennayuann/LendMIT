@@ -288,6 +288,22 @@ export class UserAuthentication {
   }
 
   /**
+   * action: getEmail
+   * @param user - The ID of the User (User).
+   * @returns `{ email: String }` containing the user's email address.
+   *
+   * requires: A `UserAccount` exists for `user`.
+   * effects: Returns the `email` for the specified `user`.
+   */
+  async getEmail({ user }: { user: User }): Promise<{ email: string }> {
+    const userAccount = await this.userAccounts.findOne({ _id: user });
+    if (!userAccount) {
+      throw new Error("Requires: User account not found.");
+    }
+    return { email: userAccount.email };
+  }
+
+  /**
    * action: changePassword
    * @param user - The ID of the User (User).
    * @param newPassword - The new password for the user (String).

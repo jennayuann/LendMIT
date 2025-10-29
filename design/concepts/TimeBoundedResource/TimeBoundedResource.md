@@ -12,7 +12,7 @@
     *   `defineTimeWindow (resource: ResourceID, availableFrom: DateTime?, availableUntil: DateTime?): Empty`
         *   **requires**:
             *   If both `availableFrom` and `availableUntil` are provided (non-null), then `availableFrom` must be strictly earlier than `availableUntil`.
-        *   **effects**: Creates a new `TimeWindow` entry for the given `resource` or updates an existing one with the specified availability bounds. If `availableFrom` is not provided, then it's available starting now. If `availableUntil` is not provided, then it's available indefinitely. 
+        *   **effects**: Creates a new `TimeWindow` entry for the given `resource` or updates an existing one with the specified availability bounds. If `availableFrom` is not provided, then it's available starting now. If `availableUntil` is not provided, then it's available indefinitely.
     *   `getTimeWindow (resource: ResourceID): TimeWindow?`
         *   **effects**: Returns the `TimeWindow` entry for the specified `resource`, containing its `resource` ID, `availableFrom`, and `availableUntil` times. Returns `null` if no time window is defined for the resource.
     *   `expireResource (resource: ResourceID): Empty`
@@ -21,3 +21,7 @@
             *   The `availableUntil` for that `resource` is defined (non-null).
             *   The `currentTime` (the moment this action is triggered) is greater than or equal to the `availableUntil` value for the `resource`.
         *   **effects**: This action serves as an event notification. It explicitly changes no state within this concept. Its occurrence signals to other concepts (via synchronization) that the resource's time-bound availability (as defined by its `availableUntil` property) has ended.
+    *   `deleteTimeWindow (resource: ResourceID): Empty`
+        *   **requires**:
+            *   A `TimeWindow` entry exists for `resource`.
+        *   **effects**: Deletes the `TimeWindow` entry for the specified `resource`.

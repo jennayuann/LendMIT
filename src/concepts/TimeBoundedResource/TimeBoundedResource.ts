@@ -169,6 +169,30 @@ export class TimeBoundedResource {
 
     return {};
   }
+
+  /**
+   * Deletes the time window associated with a given resource.
+   *
+   * @action deleteTimeWindow
+   * @param {object} params - Parameters for deleting the time window.
+   * @param {ResourceID} params.resource - The ID of the resource whose time window should be deleted.
+   * @returns {Promise<Empty>} An empty object indicating success.
+   *
+   * @requires A `TimeWindow` entry must exist for the specified `resource`.
+   * @effects Deletes the `TimeWindow` entry for the specified `resource`.
+   * @throws Error if no `TimeWindow` exists for the given `resource`.
+   */
+  async deleteTimeWindow(
+    { resource }: { resource: ResourceID },
+  ): Promise<Empty> {
+    const result = await this.collection.deleteOne({ _id: resource });
+
+    if (result.deletedCount === 0) {
+      throw new Error(`TimeWindow for resource '${resource}' not found.`);
+    }
+
+    return {};
+  }
 }
 
 // Export an instantiated class

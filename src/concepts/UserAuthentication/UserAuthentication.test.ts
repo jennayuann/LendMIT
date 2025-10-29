@@ -1742,6 +1742,53 @@ Deno.test({
 });
 
 // ----------------------------------------------------------------------
+// GET EMAIL ACTION TESTS
+// ----------------------------------------------------------------------
+Deno.test({
+  name: "UserAuthentication concept: Unit tests for 'getEmail' action",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn(t) {
+    console.log("\n===========================================");
+    console.log("🧪 TEST GROUP: GET EMAIL ACTIONS");
+    console.log("===========================================\n");
+
+    const [db, client] = await testDb();
+    const userAuth = new UserAuthentication(db);
+    const userAccountsColl: Collection = db.collection(
+      COLLECTION_PREFIX + "useraccounts",
+    );
+
+    await userAccountsColl.deleteMany({}); // Ensure clean state
+
+    await t.step(
+      "✅ Happy path: Returns the email for a valid user",
+      async () => {
+        const reg = await userAuth.registerUser({
+          email: TEST_EMAIL_9,
+          password: TEST_PASSWORD_1,
+        });
+        if ("error" in reg) throw new Error("Unexpected error: " + reg.error);
+
+        const { email } = await userAuth.getEmail({ user: reg.user });
+        assertEquals(email, TEST_EMAIL_9);
+      },
+    );
+
+    await t.step("✅ Requires violation: Unknown user throws", async () => {
+      await assertRejects(
+        () => userAuth.getEmail({ user: NON_EXISTENT_USER_ID }),
+        Error,
+        "User account not found",
+      );
+    });
+
+    await client.close();
+    console.log("✅ Finished GET EMAIL tests\n");
+  },
+});
+
+// ----------------------------------------------------------------------
 // FINAL SUMMARY
 // ----------------------------------------------------------------------
 Deno.test({

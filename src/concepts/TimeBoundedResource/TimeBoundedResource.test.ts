@@ -519,6 +519,64 @@ Deno.test({
 });
 
 // ----------------------------------------------------------------------
+// DELETE TIME WINDOW ACTION TESTS
+// ----------------------------------------------------------------------
+Deno.test({
+  name: "TimeBoundedResource concept: Unit tests for 'deleteTimeWindow' action",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn(t) {
+    console.log("\n===========================================");
+    console.log("🧪 TEST GROUP: DELETE TIME WINDOW ACTIONS");
+    console.log("===========================================\n");
+
+    const [db, client] = await testDb();
+    const timeBoundedResource = new TimeBoundedResource(db);
+    const coll: Collection<TimeWindowDoc> = db.collection(
+      "timeBoundedResources",
+    );
+    await coll.deleteMany({}); // Ensure clean state for this test block
+
+    await t.step("✅ Happy path: Delete an existing time window", async () => {
+      await timeBoundedResource.defineTimeWindow({
+        resource: resourceA,
+        availableFrom: null,
+        availableUntil: null,
+      });
+
+      const before = await timeBoundedResource.getTimeWindow({
+        resource: resourceA,
+      });
+      assertEquals(before?.resource, resourceA);
+
+      await timeBoundedResource.deleteTimeWindow({ resource: resourceA });
+
+      const after = await timeBoundedResource.getTimeWindow({
+        resource: resourceA,
+      });
+      assertEquals(after, null);
+    });
+
+    await t.step(
+      "✅ Negative path: Delete non-existent time window",
+      async () => {
+        await assertRejects(
+          () =>
+            timeBoundedResource.deleteTimeWindow({
+              resource: nonExistentResource,
+            }),
+          Error,
+          "not found",
+        );
+      },
+    );
+
+    await client.close();
+    console.log("✅ Finished DELETE TIME WINDOW tests\n");
+  },
+});
+
+// ----------------------------------------------------------------------
 // TRACE / FULL BEHAVIOR TEST
 // ----------------------------------------------------------------------
 Deno.test({

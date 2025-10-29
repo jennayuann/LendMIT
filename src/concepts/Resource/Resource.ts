@@ -203,9 +203,20 @@ export class ResourceConcept {
    * @returns An empty object (`Empty`).
    * @throws Error if a resource with the given `resourceID` does not exist.
    */
-  async deleteResource(resourceID: ResourceID): Promise<Empty> {
-    // Enforce "requires" condition: A `Resource` entry with `id = resourceID` exists.
-    const result = await this.resources.deleteOne({ _id: resourceID });
+  // async deleteResource(resourceID: ResourceID): Promise<Empty> {
+  //   // Enforce "requires" condition: A `Resource` entry with `id = resourceID` exists.
+  //   const result = await this.resources.deleteOne({ _id: resourceID });
+
+  //   if (result.deletedCount === 0) {
+  //     throw new Error(`Resource with ID '${resourceID}' not found.`);
+  //   }
+
+  //   return {};
+  // }
+  async deleteResource({ resourceID }: { resourceID: string }): Promise<Empty> {
+    // Convert to your ResourceID type
+    const id = resourceID as ResourceID;
+    const result = await this.resources.deleteOne({ _id: id });
 
     if (result.deletedCount === 0) {
       throw new Error(`Resource with ID '${resourceID}' not found.`);
@@ -225,18 +236,29 @@ export class ResourceConcept {
    * @returns The complete `Resource` object.
    * @throws Error if a resource with the given `resourceID` does not exist.
    */
-  async getResource(resourceID: ResourceID): Promise<Resource> {
-    // Enforce "requires" condition: A `Resource` entry with `id = resourceID` exists.
+  // async getResource(resourceID: ResourceID): Promise<Resource> {
+  //   // Enforce "requires" condition: A `Resource` entry with `id = resourceID` exists.
+  //   const resourceDoc = await this.resources.findOne({ _id: resourceID });
+
+  //   if (!resourceDoc) {
+  //     throw new Error(`Resource with ID '${resourceID}' not found.`);
+  //   }
+
+  //   // Convert the internal ResourceDocument (_id) to the public Resource (id) format
+  //   const { _id, ...rest } = resourceDoc;
+  //   return { id: _id, ...rest };
+  // }
+  async getResource({ resourceID }: { resourceID: ResourceID }): Promise<Resource> {
     const resourceDoc = await this.resources.findOne({ _id: resourceID });
 
     if (!resourceDoc) {
       throw new Error(`Resource with ID '${resourceID}' not found.`);
     }
 
-    // Convert the internal ResourceDocument (_id) to the public Resource (id) format
     const { _id, ...rest } = resourceDoc;
     return { id: _id, ...rest };
   }
+
 
   /**
    * Lists all Resource entries currently stored.
