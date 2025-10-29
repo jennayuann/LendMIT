@@ -1,3 +1,7 @@
+## To Run:
+```
+deno task concepts
+```
 # Backend Design Updates (Assignment 4b)
 Also copy and pasted at the end of the Comprehensive Design File -> [Comprehensive Design File](design/concepts/Comprehensive%20Design%20File.md)
 
