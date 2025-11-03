@@ -4,6 +4,8 @@
   },
   "imports": {
     "@concepts/": "./src/concepts/",
+    "@concepts": "./src/concepts/concepts.ts",
+    "@test-concepts": "./src/concepts/test_concepts.ts",
     "@std/assert": "jsr:@std/assert@^1.0.15",
     "@hono/hono": "jsr:@hono/hono",
     "@std/fs": "jsr:@std/fs",
@@ -11,16 +13,23 @@
     "@std/path/to-file-url": "jsr:@std/path/to-file-url",
     "@utils/": "./src/utils/",
     "@/": "./src/",
-    "mongodb": "npm:mongodb"
+    "mongodb": "npm:mongodb",
+    "@engine": "./src/engine/mod.ts",
+    "@syncs": "./src/syncs/syncs.ts"
   },
   "tasks": {
     "start": "deno run --allow-env --allow-net --allow-read --allow-sys=osRelease src/main.ts",
     "test": "deno test --allow-env --allow-net --allow-read --allow-sys=osRelease",
-    "concepts": "deno run --allow-net --allow-read --allow-sys --allow-env src/concept_server.ts --port 8000 --baseUrl /api"
+    "concepts": "deno run --allow-net --allow-read --allow-sys --allow-env src/concept_server.ts --port 8000 --baseUrl /api",
+    "import": "deno run --allow-read --allow-write --allow-env src/utils/generate_imports.ts",
+    "build": "deno run import"
   },
   "lint": {
     "rules": {
-      "exclude": ["no-unversioned-import"]
+      "exclude": [
+        "no-import-prefix",
+        "no-unversioned-import"
+      ]
     }
   },
   "nodeModulesDir": "auto"

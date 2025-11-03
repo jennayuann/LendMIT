@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README.md",
+                "file": "design/background/architecture.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "architecture"
             }
           }
         ]
@@ -171,6 +171,14 @@
   },
   "active": "fc52198744952495",
   "lastOpenFiles": [
+    "src/syncs/likert.sync.ts",
+    "design/background/concept-specifications.md",
+    "design/background/implementing-synchronizations.md",
+    "design/background/original-concepts.md",
+    "design/tools/concept-background.md",
+    "design/tools/sync-background.md",
+    "src/concepts/Requesting/README.md",
+    "README.md",
     "design/concepts/Comprehensive Design File.md",
     "src/concepts/UserAuthentication/test-output.md",
     "design/concepts/ResourceStatus/ResourceStatus.md",
@@ -179,7 +187,6 @@
     "src/concepts/TimeBoundedResource/test-output.md",
     "design/concepts/TimeBoundedResource/TimeBoundedResource.md",
     "design/concepts/TimeBoundedResource/design-file.md",
-    "README.md",
     "design/concepts/Comprehensive.md",
     "design/api-spec.md",
     "scripts/seed_intents.ts",
@@ -192,14 +199,7 @@
     "design/concepts/ResourceIntent/design-file.md",
     "design/concepts/Resource/design-file.md",
     "design/concepts/Resource/prompts/test-prompt.md",
-    "design/concepts/Resource/prompts/implementation-prompt.md",
-    "context/design/concepts/Resource/Resource.md/20251021_184721.156b9e68.md",
-    "context/design/concepts/Resource/Resource.md/steps/response.ec502540.md",
-    "context/design/concepts/Resource/Resource.md/steps/concept.a6f29971.md",
     "context/design/concepts/Resource/Resource.md/steps",
-    "context/design/concepts/Resource/Resource.md/20251021_184716.f41e8183.md",
-    "context/design/concepts/Resource/Resource.md",
-    "context/design/tools/api-extraction-from-spec.md/20251021_143058.245fc338.md",
     "src/concepts/ResourceIntent/ResourceIntent.test.ts",
     "context/design/concepts/ResourceIntent/prompts/test-prompt.md/steps",
     "src/concepts/ResourceIntent/ResourceIntent.ts",
