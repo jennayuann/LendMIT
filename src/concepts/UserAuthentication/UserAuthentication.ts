@@ -238,9 +238,9 @@ If you didn’t request this, you can ignore this email.`;
       <p>It expires in 15 minutes.</p>
       <p style="color:#666">If you didn’t request this, you can ignore this email.</p>
     `;
-    try {
-      await sendEmail({ to: email, subject, text, html });
-    } catch (err) {
+    // Fire-and-forget email send so it never delays signup or fails the action.
+    // Any transport error is logged but does not affect control flow.
+    sendEmail({ to: email, subject, text, html }).catch((err) => {
       console.warn("Failed to send verification email:", err);
       // Dev hint: surface the code in logs to unblock local testing when email cannot be delivered (e.g., sandbox restrictions)
       try {
@@ -257,8 +257,7 @@ If you didn’t request this, you can ignore this email.`;
       } catch (_) {
         // Env access may be restricted in some runtimes; ignore.
       }
-      // Do not fail the action on email errors; the code is stored and usable.
-    }
+    });
     return {};
   }
 
