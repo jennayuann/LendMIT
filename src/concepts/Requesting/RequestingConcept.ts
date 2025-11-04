@@ -235,7 +235,13 @@ export function startRequestingServer(
       app.post(route, async (c) => {
         try {
           const body = await c.req.json().catch(() => ({})); // Handle empty body
-          const result = await concept[method](body);
+          // Propagate auth user id from header into request body for downstream checks
+          const authUserHeader = c.req.header("x-auth-user")?.trim();
+          const mergedBody =
+            authUserHeader && authUserHeader.length > 0
+              ? { ...body, authUser: authUserHeader }
+              : body;
+          const result = await concept[method](mergedBody);
           return c.json(result);
         } catch (e) {
           console.error(`Error in ${conceptName}.${method}:`, e);
@@ -273,9 +279,14 @@ export function startRequestingServer(
       const actionPath = c.req.path.substring(REQUESTING_BASE_URL.length);
 
       // Combine the path from the URL with the JSON body to form the action's input.
+      // Also propagate the auth user id from the header for sync-layer authorization.
+      const authUserHeader = c.req.header("x-auth-user")?.trim();
       const inputs = {
         ...body,
         path: actionPath,
+        ...(authUserHeader && authUserHeader.length > 0
+          ? { authUser: authUserHeader }
+          : {}),
       };
 
       console.log(`[Requesting] Received request for path: ${inputs.path}`);

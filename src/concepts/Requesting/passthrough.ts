@@ -68,6 +68,11 @@ export const inclusions: Record<string, string> = {
  */
 
 export const exclusions: Array<string> = [
+  // Internal/maintenance methods (do not expose via passthrough)
+  "/api/Following/initialize",
+  "/api/Following/ensureIndexes",
+  "/api/Following/migrateLegacyCollection",
+  "/api/TimeBoundedResource/listExpiredResources",
   "/api/UserAuthentication/getEmail",
   "/api/UserAuthentication/changePassword",
   "/api/UserAuthentication/activateUser",

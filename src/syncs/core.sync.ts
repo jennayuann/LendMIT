@@ -190,6 +190,25 @@ function requireId(
   return requireString(body, keys, fieldName) as unknown as ID;
 }
 
+function pickAuthUser(body: Record<string, unknown>): string | undefined {
+  const raw = body["authUser"];
+  if (typeof raw === "string" && raw.trim().length > 0) return raw.trim();
+  return undefined;
+}
+
+async function assertOwner(body: Record<string, unknown>, resourceID: ID) {
+  const authUser = pickAuthUser(body);
+  if (!authUser) throw new Error("Unauthorized: missing auth user.");
+  const res = await Resource.getResource({ resourceID });
+  if (!res) {
+    throw new Error("Not found: resource does not exist.");
+  }
+  const owner = res?.owner as unknown as string | undefined;
+  if (!owner || String(owner) !== authUser) {
+    throw new Error("Forbidden: not the resource owner.");
+  }
+}
+
 export const UserAuthenticationGetEmail: Sync = createRouteSync(
   "/UserAuthentication/getEmail",
   async ({ body }) => {
@@ -342,6 +361,12 @@ export const ResourceCreateResource: Sync = createRouteSync(
       )}`
     );
     const owner = requireId(body, ["owner", "ownerId", "user"], "owner");
+    {
+      const authUser = pickAuthUser(body);
+      if (!authUser || String(owner) !== authUser) {
+        throw new Error("Forbidden: owner must match authenticated user.");
+      }
+    }
     const name = requireString(body, ["name", "title"], "name");
     const category = pickNullableString(body, ["category"]);
     const description = pickNullableString(body, ["description", "details"]);
@@ -400,6 +425,7 @@ export const ResourceUpdateResource: Sync = createRouteSync(
       ["resourceID", "resourceId", "resource", "id"],
       "resourceID"
     );
+    await assertOwner(body, resourceID);
     const name = pickString(body, ["name", "title"]);
     let category = pickNullableString(body, ["category"]);
     let description = pickNullableString(body, ["description", "details"]);
@@ -429,6 +455,7 @@ export const ResourceDeleteResource: Sync = createRouteSync(
       ["resourceID", "resourceId", "resource", "id"],
       "resourceID"
     );
+    await assertOwner(body, resourceID);
     await Resource.deleteResource({ resourceID });
     return {};
   }
@@ -489,6 +516,7 @@ export const ResourceIntentSetIntent: Sync = createRouteSync(
       ["resource", "resourceID", "resourceId", "id"],
       "resource"
     );
+    await assertOwner(body, resource);
     const intent = requireString(
       body,
       ["intent", "intentName", "name"],
@@ -507,6 +535,7 @@ export const ResourceIntentClearIntent: Sync = createRouteSync(
       ["resource", "resourceID", "resourceId", "id"],
       "resource"
     );
+    await assertOwner(body, resource);
     await ResourceIntent.clearIntent({ resource });
     return {};
   }
@@ -580,6 +609,7 @@ export const TimeBoundedResourceDefineTimeWindow: Sync = createRouteSync(
       ["resource", "resourceID", "resourceId", "id"],
       "resource"
     );
+    await assertOwner(body, resource);
     const availableFrom = parseDateField(
       body,
       ["availableFrom", "from", "start"],
@@ -607,6 +637,7 @@ export const TimeBoundedResourceExpireResource: Sync = createRouteSync(
       ["resource", "resourceID", "resourceId", "id"],
       "resource"
     );
+    await assertOwner(body, resource);
     await TimeBoundedResource.expireResource({ resource });
     return {};
   }
@@ -620,6 +651,7 @@ export const TimeBoundedResourceDeleteTimeWindow: Sync = createRouteSync(
       ["resource", "resourceID", "resourceId", "id"],
       "resource"
     );
+    await assertOwner(body, resource);
     await TimeBoundedResource.deleteTimeWindow({ resource });
     return {};
   }
@@ -649,6 +681,12 @@ export const FollowingFollow: Sync = createRouteSync(
       ["follower", "followerId", "user"],
       "follower"
     );
+    {
+      const authUser = pickAuthUser(body);
+      if (!authUser || String(follower) !== authUser) {
+        throw new Error("Forbidden: follower must match authenticated user.");
+      }
+    }
     const followee = requireId(
       body,
       ["followee", "followeeId", "target", "id"],
@@ -674,6 +712,12 @@ export const FollowingUnfollow: Sync = createRouteSync(
       ["follower", "followerId", "user"],
       "follower"
     );
+    {
+      const authUser = pickAuthUser(body);
+      if (!authUser || String(follower) !== authUser) {
+        throw new Error("Forbidden: follower must match authenticated user.");
+      }
+    }
     const followee = requireId(
       body,
       ["followee", "followeeId", "target", "id"],

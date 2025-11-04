@@ -22,14 +22,12 @@
     "test": "deno test --allow-env --allow-net --allow-read --allow-sys=osRelease",
     "concepts": "deno run --allow-net --allow-read --allow-sys --allow-env src/concept_server.ts --port 8000 --baseUrl /api",
     "import": "deno run --allow-read --allow-write --allow-env src/utils/generate_imports.ts",
-    "build": "deno run import"
+    "build": "deno run import",
+    "clear:requesting": "deno run --allow-env --allow-net --allow-read scripts/clear_requesting_requests.ts"
   },
   "lint": {
     "rules": {
-      "exclude": [
-        "no-import-prefix",
-        "no-unversioned-import"
-      ]
+      "exclude": ["no-import-prefix", "no-unversioned-import"]
     }
   },
   "nodeModulesDir": "auto"
