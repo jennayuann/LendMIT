@@ -4,6 +4,7 @@ import { Collection, Db } from "mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
 import { db } from "@/db/connection.ts";
+import { sendEmail } from "@/utils/email.ts";
 
 // --- Helper Functions for Password Hashing/Verification ---
 
@@ -34,7 +35,7 @@ async function hashPassword(password: string): Promise<string> {
  */
 async function verifyPassword(
   password: string,
-  hashedPassword: string,
+  hashedPassword: string
 ): Promise<boolean> {
   const newHashed = await hashPassword(password);
   return newHashed === hashedPassword;
@@ -101,7 +102,7 @@ export class UserAuthentication {
   constructor(private readonly db: Db) {
     this.userAccounts = this.db.collection(COLLECTION_PREFIX + "useraccounts");
     this.verificationCodes = this.db.collection(
-      COLLECTION_PREFIX + "verificationcodes",
+      COLLECTION_PREFIX + "verificationcodes"
     );
   }
 
@@ -119,10 +120,25 @@ export class UserAuthentication {
    * requires: `email` is already associated with an existing `UserAccount` entry.
    * effects: Returns an `error` message indicating the email is already in use.
    */
-  async registerUser(
-    { email, password }: { email: string; password: string },
-  ): Promise<{ user: User } | { error: string }> {
-    const existingUser = await this.userAccounts.findOne({ email });
+  async registerUser({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<{ user: User } | { error: string }> {
+    // Normalize and enforce MIT email domain policy
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
+    const mitPattern = /@mit\.edu$/i; // only allow addresses ending with @mit.edu
+    if (!mitPattern.test(normalizedEmail)) {
+      return { error: "Email must be an @mit.edu address." };
+    }
+
+    const existingUser = await this.userAccounts.findOne({
+      email: normalizedEmail,
+    });
     if (existingUser) {
       return { error: "Email already in use." };
     }
@@ -132,7 +148,7 @@ export class UserAuthentication {
 
     const newUserAccount: UserAccount = {
       _id: userId,
-      email,
+      email: normalizedEmail,
       passwordHashed,
       status: UserStatus.UNVERIFIED,
     };
@@ -153,10 +169,20 @@ export class UserAuthentication {
    * effects: Deletes any existing `VerificationCodes` for `user`. Creates a new `VerificationCodes` entry for `user`
    *          with a newly generated `code`, and an `expiry` time (e.g., 15 minutes from `currentTime`).
    */
-  async sendVerificationCode(
-    { user, email }: { user: User; email: string },
-  ): Promise<Empty> {
-    const userAccount = await this.userAccounts.findOne({ _id: user, email });
+  async sendVerificationCode({
+    user,
+    email,
+  }: {
+    user: User;
+    email: string;
+  }): Promise<Empty> {
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
+    const userAccount = await this.userAccounts.findOne({
+      _id: user,
+      email: normalizedEmail,
+    });
 
     if (!userAccount) {
       throw new Error("Requires: User account not found or email mismatch.");
@@ -164,7 +190,7 @@ export class UserAuthentication {
     if (userAccount.status !== UserStatus.UNVERIFIED) {
       throw new Error(
         "Requires: User account status is not UNVERIFIED. Current status: " +
-          userAccount.status,
+          userAccount.status
       );
     }
 
@@ -175,7 +201,7 @@ export class UserAuthentication {
 
     if (unexpiredCode) {
       throw new Error(
-        "Requires: An unexpired verification code already exists for this user.",
+        "Requires: An unexpired verification code already exists for this user."
       );
     }
 
@@ -194,6 +220,45 @@ export class UserAuthentication {
     };
 
     await this.verificationCodes.insertOne(newVerificationCode);
+
+    // Attempt to send the verification email (best-effort). If email transport
+    // isn't configured, this will no-op with a warning.
+    const subject = "Your LendMIT verification code";
+    const text = `Hi,
+
+Here is your LendMIT verification code: ${code}
+
+It expires in 15 minutes.
+
+If you didn’t request this, you can ignore this email.`;
+    const html = `
+      <p>Hi,</p>
+      <p>Here is your <strong>LendMIT</strong> verification code:</p>
+      <p style="font-size:20px; font-weight:700; letter-spacing:2px;">${code}</p>
+      <p>It expires in 15 minutes.</p>
+      <p style="color:#666">If you didn’t request this, you can ignore this email.</p>
+    `;
+    try {
+      await sendEmail({ to: email, subject, text, html });
+    } catch (err) {
+      console.warn("Failed to send verification email:", err);
+      // Dev hint: surface the code in logs to unblock local testing when email cannot be delivered (e.g., sandbox restrictions)
+      try {
+        const env = (
+          Deno.env.get("NODE_ENV") ||
+          Deno.env.get("ENV") ||
+          "development"
+        ).toLowerCase();
+        if (env !== "production") {
+          console.info(
+            `[dev] Verification code for ${email}: ${code} (expires ${expiry.toISOString()})`
+          );
+        }
+      } catch (_) {
+        // Env access may be restricted in some runtimes; ignore.
+      }
+      // Do not fail the action on email errors; the code is stored and usable.
+    }
     return {};
   }
 
@@ -209,9 +274,13 @@ export class UserAuthentication {
    *          sets the `status` for the `UserAccount` of `user` to `VERIFIED`, and returns `true`.
    *          Otherwise, returns `false`.
    */
-  async verifyCode(
-    { user, code }: { user: User; code: string },
-  ): Promise<{ verified: boolean }> {
+  async verifyCode({
+    user,
+    code,
+  }: {
+    user: User;
+    code: string;
+  }): Promise<{ verified: boolean }> {
     const verificationEntry = await this.verificationCodes.findOne({
       user,
       code,
@@ -234,7 +303,7 @@ export class UserAuthentication {
     await this.verificationCodes.deleteOne({ _id: verificationEntry._id });
     await this.userAccounts.updateOne(
       { _id: user },
-      { $set: { status: UserStatus.VERIFIED } },
+      { $set: { status: UserStatus.VERIFIED } }
     );
 
     return { verified: true };
@@ -255,10 +324,19 @@ export class UserAuthentication {
    *           or `status` is `DEACTIVATED` or `UNVERIFIED`.
    * effects: Returns an `error` message indicating authentication failure.
    */
-  async login(
-    { email, password }: { email: string; password: string },
-  ): Promise<{ user: User } | { error: string }> {
-    const userAccount = await this.userAccounts.findOne({ email });
+  async login({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<{ user: User } | { error: string }> {
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
+    const userAccount = await this.userAccounts.findOne({
+      email: normalizedEmail,
+    });
 
     if (!userAccount) {
       return { error: "Authentication failed: Invalid credentials." };
@@ -266,7 +344,7 @@ export class UserAuthentication {
 
     const isPasswordValid = await verifyPassword(
       password,
-      userAccount.passwordHashed,
+      userAccount.passwordHashed
     );
 
     if (!isPasswordValid) {
@@ -278,8 +356,7 @@ export class UserAuthentication {
       userAccount.status === UserStatus.UNVERIFIED
     ) {
       return {
-        error:
-          `Authentication failed: Account status is ${userAccount.status}. Only VERIFIED accounts can log in.`,
+        error: `Authentication failed: Account status is ${userAccount.status}. Only VERIFIED accounts can log in.`,
       };
     }
 
@@ -313,9 +390,13 @@ export class UserAuthentication {
    * requires: A `UserAccount` entry for `user` exists and `status` is `VERIFIED`.
    * effects: Updates the `passwordHashed` for the given `user` to a hashed version of `newPassword`.
    */
-  async changePassword(
-    { user, newPassword }: { user: User; newPassword: string },
-  ): Promise<Empty> {
+  async changePassword({
+    user,
+    newPassword,
+  }: {
+    user: User;
+    newPassword: string;
+  }): Promise<Empty> {
     const userAccount = await this.userAccounts.findOne({ _id: user });
 
     if (!userAccount) {
@@ -324,7 +405,7 @@ export class UserAuthentication {
     if (userAccount.status !== UserStatus.VERIFIED) {
       throw new Error(
         "Requires: Account must be VERIFIED to change password. Current status: " +
-          userAccount.status,
+          userAccount.status
       );
     }
 
@@ -332,7 +413,7 @@ export class UserAuthentication {
 
     await this.userAccounts.updateOne(
       { _id: user },
-      { $set: { passwordHashed: newPasswordHashed } },
+      { $set: { passwordHashed: newPasswordHashed } }
     );
     return {};
   }
@@ -355,13 +436,13 @@ export class UserAuthentication {
     if (userAccount.status !== UserStatus.DEACTIVATED) {
       throw new Error(
         "Requires: Account must be DEACTIVATED to activate. Current status: " +
-          userAccount.status,
+          userAccount.status
       );
     }
 
     await this.userAccounts.updateOne(
       { _id: user },
-      { $set: { status: UserStatus.UNVERIFIED } },
+      { $set: { status: UserStatus.UNVERIFIED } }
     );
     return {};
   }
@@ -387,13 +468,13 @@ export class UserAuthentication {
     ) {
       throw new Error(
         "Requires: Account must be VERIFIED or UNVERIFIED to deactivate (e.g., it is already DEACTIVATED). Current status: " +
-          userAccount.status,
+          userAccount.status
       );
     }
 
     await this.userAccounts.updateOne(
       { _id: user },
-      { $set: { status: UserStatus.DEACTIVATED } },
+      { $set: { status: UserStatus.DEACTIVATED } }
     );
     return {};
   }
@@ -414,7 +495,7 @@ export class UserAuthentication {
 
     if (existingCodesCount === 0) {
       throw new Error(
-        "Requires: No verification codes found for this user to revoke.",
+        "Requires: No verification codes found for this user to revoke."
       );
     }
 

@@ -25,12 +25,36 @@
  */
 
 export const inclusions: Record<string, string> = {
-  // Feel free to delete these example inclusions
-  "/api/LikertSurvey/_getSurveyQuestions": "this is a public query",
-  "/api/LikertSurvey/_getSurveyResponses": "responses are public",
-  "/api/LikertSurvey/_getRespondentAnswers": "answers are visible",
-  "/api/LikertSurvey/submitResponse": "allow anyone to submit response",
-  "/api/LikertSurvey/updateResponse": "allow anyone to update their response",
+  "/api/UserAuthentication/registerUser":
+    "allow self-service account registration",
+  "/api/UserAuthentication/sendVerificationCode":
+    "support users requesting their own verification codes",
+  "/api/UserAuthentication/verifyCode":
+    "let users complete verification without extra indirection",
+  "/api/UserAuthentication/login":
+    "permit credential checks needed for session creation",
+  "/api/Resource/getResource": "publicly expose read-only resource details",
+  "/api/Resource/listResources":
+    "allow unauthenticated browsing of available resources",
+  "/api/Resource/listResourcesByOwner":
+    "enable clients to load owner-scoped resource lists",
+  "/api/ResourceIntent/getIntent":
+    "surface a resource's declared intent for display",
+  "/api/ResourceIntent/listIntents": "publish the catalog of defined intents",
+  "/api/ResourceIntent/listResourcesByIntent":
+    "allow browsing resources by intent label",
+  "/api/TimeBoundedResource/getTimeWindow":
+    "share availability windows for scheduling purposes",
+  "/api/Following/isFollowing":
+    "expose read-only following checks for UI state",
+  "/api/Following/getFollowees":
+    "support listing who a user follows for public profiles",
+  "/api/Following/getFollowers":
+    "support listing followers where visibility is allowed",
+  "/api/NotificationLog/listNotificationsWithContent":
+    "publish human-readable notifications for UI rendering",
+  "/api/NotificationLog/getNotificationWithContent":
+    "fetch a single notification with parsed content for detail views",
 };
 
 /**
@@ -44,7 +68,31 @@ export const inclusions: Record<string, string> = {
  */
 
 export const exclusions: Array<string> = [
-  // Feel free to delete these example exclusions
-  "/api/LikertSurvey/createSurvey",
-  "/api/LikertSurvey/addQuestion",
+  "/api/UserAuthentication/getEmail",
+  "/api/UserAuthentication/changePassword",
+  "/api/UserAuthentication/activateUser",
+  "/api/UserAuthentication/deactivateUser",
+  "/api/UserAuthentication/revokeVerification",
+  "/api/UserAuthentication/cleanExpiredCodes",
+  "/api/UserProfile/createProfile",
+  "/api/UserProfile/updateProfile",
+  "/api/UserProfile/deleteProfile",
+  "/api/UserProfile/getProfile",
+  "/api/Resource/createResource",
+  "/api/Resource/updateResource",
+  "/api/Resource/deleteResource",
+  "/api/ResourceIntent/defineIntent",
+  "/api/ResourceIntent/undefineIntent",
+  "/api/ResourceIntent/setIntent",
+  "/api/ResourceIntent/clearIntent",
+  "/api/TimeBoundedResource/defineTimeWindow",
+  "/api/TimeBoundedResource/expireResource",
+  "/api/TimeBoundedResource/deleteTimeWindow",
+  "/api/Following/follow",
+  "/api/Following/unfollow",
+  "/api/NotificationLog/logNotification",
+  "/api/NotificationLog/markAsDelivered",
+  "/api/NotificationLog/dismissNotification",
+  "/api/NotificationLog/clearDismissedNotifications",
+  "/api/NotificationLog/getNotifications",
 ];

@@ -39,6 +39,40 @@ export class TimeBoundedResource {
   }
 
   /**
+   * Lists resources whose availability window has expired as of the provided time (or now).
+   *
+   * @query listExpiredResources
+   * @param {object} params
+   * @param {Date} [params.now] - Reference time; defaults to current time when omitted.
+   * @returns {Promise<{ resourceIDs: ResourceID[] }>} IDs of resources where availableUntil is non-null and <= now.
+   */
+  async listExpiredResources({ now }: { now?: Date } = {}): Promise<{
+    resourceIDs: ResourceID[];
+  }> {
+    const ref = now ?? new Date();
+    // Be resilient to historical data where availableUntil may have been stored as a string
+    const docs = await this.collection
+      .find({ availableUntil: { $ne: null } })
+      .project<{ _id: ResourceID; availableUntil: unknown }>({
+        _id: 1,
+        availableUntil: 1,
+      })
+      .toArray();
+    const resourceIDs = docs
+      .filter((d) => {
+        const au = d.availableUntil as unknown;
+        if (au instanceof Date) return au.getTime() <= ref.getTime();
+        if (typeof au === "string") {
+          const t = new Date(au).getTime();
+          if (!Number.isNaN(t)) return t <= ref.getTime();
+        }
+        return false;
+      })
+      .map((d) => d._id);
+    return { resourceIDs };
+  }
+
+  /**
    * Defines or updates a time window for a given resource.
    *
    * @action defineTimeWindow
@@ -58,19 +92,21 @@ export class TimeBoundedResource {
    *          then it's set to the current time. If `availableUntil` is not provided (null),
    *          then it's stored as null to indicate indefinite availability.
    */
-  async defineTimeWindow(
-    { resource, availableFrom, availableUntil }: {
-      resource: ResourceID;
-      availableFrom: Date | null;
-      availableUntil: Date | null;
-    },
-  ): Promise<Empty> {
+  async defineTimeWindow({
+    resource,
+    availableFrom,
+    availableUntil,
+  }: {
+    resource: ResourceID;
+    availableFrom: Date | null;
+    availableUntil: Date | null;
+  }): Promise<Empty> {
     // Requires: If both availableFrom and availableUntil are provided (non-null),
     // then availableFrom must be strictly earlier than availableUntil.
     if (availableFrom instanceof Date && availableUntil instanceof Date) {
       if (availableFrom.getTime() >= availableUntil.getTime()) {
         throw new Error(
-          "Validation Error: 'availableFrom' must be strictly earlier than 'availableUntil'.",
+          "Validation Error: 'availableFrom' must be strictly earlier than 'availableUntil'."
         );
       }
     }
@@ -109,9 +145,11 @@ export class TimeBoundedResource {
    *          `resource` ID, `availableFrom`, and `availableUntil` times.
    *          Returns `null` if no time window is defined for the resource.
    */
-  async getTimeWindow(
-    { resource }: { resource: ResourceID },
-  ): Promise<TimeWindow | null> {
+  async getTimeWindow({
+    resource,
+  }: {
+    resource: ResourceID;
+  }): Promise<TimeWindow | null> {
     // MongoDB returns Date objects directly from the BSON Date type, which fits the `Date | null` interface.
     // The `_id` will also be present in the returned document, conforming to the `TimeWindow` interface.
     const timeWindow = await this.collection.findOne({ _id: resource });
@@ -143,7 +181,7 @@ export class TimeBoundedResource {
     // Requires: A TimeWindow entry exists for resource.
     if (!timeWindow) {
       throw new Error(
-        `Validation Error: No TimeWindow entry found for resource '${resource}'.`,
+        `Validation Error: No TimeWindow entry found for resource '${resource}'.`
       );
     }
 
@@ -151,7 +189,7 @@ export class TimeBoundedResource {
     if (timeWindow.availableUntil === null) {
       throw new Error(
         `Validation Error: 'availableUntil' is not defined (null) for resource '${resource}'. ` +
-          "Cannot expire an indefinitely available resource through this action.",
+          "Cannot expire an indefinitely available resource through this action."
       );
     }
 
@@ -160,7 +198,7 @@ export class TimeBoundedResource {
       throw new Error(
         `Validation Error: Current time (${currentTime.toISOString()}) is earlier than ` +
           `'availableUntil' (${timeWindow.availableUntil.toISOString()}) for resource '${resource}'. ` +
-          "Resource is not yet expired.",
+          "Resource is not yet expired."
       );
     }
 
@@ -182,9 +220,11 @@ export class TimeBoundedResource {
    * @effects Deletes the `TimeWindow` entry for the specified `resource`.
    * @throws Error if no `TimeWindow` exists for the given `resource`.
    */
-  async deleteTimeWindow(
-    { resource }: { resource: ResourceID },
-  ): Promise<Empty> {
+  async deleteTimeWindow({
+    resource,
+  }: {
+    resource: ResourceID;
+  }): Promise<Empty> {
     const result = await this.collection.deleteOne({ _id: resource });
 
     if (result.deletedCount === 0) {
