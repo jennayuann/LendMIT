@@ -23,5 +23,9 @@ deno task concepts
 ## Reflection Document
 [Reflection](reflection.md)
 
+## Sample Login to Use for Testing (account created in demo)
+- Email: jnnayuan@mit.edu
+- Password: jenna
+
 ## Frontend Repository
 The frontend for this project can be found here: [LendMIT Frontend](https://github.com/jennayuann/LendMIT-frontend)
