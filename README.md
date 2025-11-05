@@ -23,7 +23,8 @@ deno task concepts
 ## Reflection Document
 [Reflection](reflection.md)
 
-## Sample Login to Use for Testing (account created in demo)
+## Sample Login
+Feel free to use the following login to test the application (account created in demo):
 - Email: jnnayuan@mit.edu
 - Password: jenna
 
